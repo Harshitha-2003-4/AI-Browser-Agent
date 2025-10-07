@@ -1,0 +1,5 @@
+{
+  "name": "AI Course Finder",
+  "description": "An autonomous AI browser agent that searches Coursera for courses on a given topic and displays the results.",
+  "requestFramePermissions": []
+}
