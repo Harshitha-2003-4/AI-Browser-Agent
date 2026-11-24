@@ -1,0 +1,40 @@
+name: AccuKnox Quality Gate Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      soft_fail:
+        description: "soft_fail (false = a failed policy fails the build)"
+        type: choice
+        options: ["false", "true"]
+        default: "false"
+      gate_timeout:
+        description: "Seconds to wait for the gate verdict"
+        default: "600"
+
+jobs:
+  sast-quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: AccuKnox SAST + Quality Gate
+        id: sast
+        uses: accuknox/sast-scan-opengrep-action@feat/quality-gate
+        with:
+          accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
+          accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
+          accuknox_label: ${{ secrets.ACCUKNOX_LABEL }}
+          quality_gate: "true"
+          gate_token: ${{ secrets.ACCUKNOX_GATE_TOKEN }}
+          soft_fail: ${{ inputs.soft_fail }}
+          gate_timeout: ${{ inputs.gate_timeout }}
+
+      - name: Show gate result
+        if: always()
+        run: |
+          echo "cli_id      = ${{ steps.sast.outputs.cli_id }}"
+          echo "gate_status = ${{ steps.sast.outputs.gate_status }}"
+          f="${{ steps.sast.outputs.gate_json_file }}"
+          if [ -n "$f" ] && [ -f "$f" ]; then cat "$f"; else echo "no gate JSON"; fi
